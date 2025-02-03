@@ -1,5 +1,6 @@
 package com.ivson.ws.emailnotification.config;
 
+import com.ivson.ws.emailnotification.error.NonRetryableException;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -15,6 +16,8 @@ import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.support.serializer.JsonSerializer;
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.servlet.View;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -43,9 +46,13 @@ public class KafkaConsumerConfiguration {
 
     @Bean
     ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory(
-            ConsumerFactory<String, Object> consumerFactory, KafkaTemplate<String, Object> kafkaTemplate) {
+            ConsumerFactory<String, Object> consumerFactory, KafkaTemplate<String, Object> kafkaTemplate, View error) {
 
         DefaultErrorHandler errorHandler = new DefaultErrorHandler(new DeadLetterPublishingRecoverer(kafkaTemplate));
+        errorHandler.addNotRetryableExceptions(
+            NonRetryableException.class,
+            HttpServerErrorException.class
+        );
 
         ConcurrentKafkaListenerContainerFactory<String, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory);

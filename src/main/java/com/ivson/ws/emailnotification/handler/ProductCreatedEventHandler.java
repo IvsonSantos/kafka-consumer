@@ -1,5 +1,6 @@
 package com.ivson.ws.emailnotification.handler;
 
+import com.ivson.ws.emailnotification.error.NonRetryableException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaHandler;
@@ -16,6 +17,9 @@ public class ProductCreatedEventHandler {
 
     @KafkaHandler
     public void handle(ProductCreatedEvent productCreatedEvent) {
+        if (true) {
+            throw new NonRetryableException("An error took place. No need to consume this message again");
+        }
         LOGGER.info("Product created event received: {}", productCreatedEvent.getTitle());
     }
 
